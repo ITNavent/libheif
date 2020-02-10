@@ -13,7 +13,7 @@ extern "C" {
  * Signature: (I[Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_HEIFConverter_convert
-  (JNIEnv *, jobject, jint, jobjectArray);
+  (JNIEnv *, jobject, jint, jbyteArray, jstring);
 
 #ifdef __cplusplus
 }

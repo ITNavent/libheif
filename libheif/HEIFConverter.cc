@@ -57,10 +57,10 @@
 
 #define UNUSED(x) (void)x
 
-static int usage(const char* command) {
-  fprintf(stderr, "USAGE: %s [-q quality 0..100] <filename> <output>\n", command);
-  return 1;
-}
+//static int usage(const char* command) {
+//  fprintf(stderr, "USAGE: %s [-q quality 0..100] <filename> <output>\n", command);
+//  return 1;
+//}
 
 class ContextReleaser {
  public:
@@ -74,27 +74,12 @@ class ContextReleaser {
 };
 
 
-int convert(int argc, char** argv) {
-  int opt;
+int convert(int dataLength, void* data, char* outputFileName) {
   int quality = -1;  // Use default quality.
   UNUSED(quality);  // The quality will only be used by encoders that support it.
-  while ((opt = getopt(argc, argv, "q:")) != -1) {
-    switch (opt) {
-    case 'q':
-      quality = atoi(argv[opt]);
-      break;
-    default: /* '?' */
-      return usage(argv[0]);
-    }
-  }
 
-  if (opt + 2 > argc) {
-    // Need input and output filenames as additional arguments.
-    return usage(argv[0]);
-  }
-
-  std::string input_filename(argv[0]);
-  std::string output_filename(argv[1]);
+  //std::string input_filename(argv[0]);
+  std::string output_filename(outputFileName);
 
   std::unique_ptr<Encoder> encoder;
 
@@ -144,19 +129,19 @@ int convert(int argc, char** argv) {
   // just for file-type checking.
   // TODO: check, whether reading from named pipes works at all.
 
-  std::ifstream istr(input_filename.c_str(), std::ios_base::binary);
-  uint8_t magic[12];
-  istr.read((char*)magic,12);
-  enum heif_filetype_result filetype_check = heif_check_filetype(magic,12);
-  if (filetype_check == heif_filetype_no) {
-    fprintf(stderr, "Input file is not an HEIF file\n");
-    return 1;
-  }
+  //std::ifstream istr(input_filename.c_str(), std::ios_base::binary);
+  //uint8_t magic[12];
+  //istr.read((char*)magic,12);
+  //enum heif_filetype_result filetype_check = heif_check_filetype(magic,12);
+  //if (filetype_check == heif_filetype_no) {
+  //  fprintf(stderr, "Input file is not an HEIF file\n");
+  //  return 1;
+  //}
 
-  if (filetype_check == heif_filetype_yes_unsupported) {
-    fprintf(stderr, "Input file is an unsupported HEIF file type\n");
-    return 1;
-  }
+  //if (filetype_check == heif_filetype_yes_unsupported) {
+  //  fprintf(stderr, "Input file is an unsupported HEIF file type\n");
+  //  return 1;
+  //}
 
 
 
@@ -170,7 +155,7 @@ int convert(int argc, char** argv) {
 
   ContextReleaser cr(ctx);
   struct heif_error err;
-  err = heif_context_read_from_file(ctx, input_filename.c_str(), nullptr);
+  err = heif_context_read_from_memory(ctx, data, dataLength, nullptr);
   if (err.code != 0) {
     std::cerr << "Could not read HEIF file: " << err.message << "\n";
     return 1;
@@ -299,18 +284,12 @@ int convert(int argc, char** argv) {
 
 }
 
-int main(int argc, char** argv) {
-  return convert(argc,argv);
-}
+JNIEXPORT jint JNICALL Java_HEIFConverter_convert(JNIEnv *env, jobject, jint dataLength, jbyteArray data, jstring outputFileName){
+  char *outputFileNameStr = (char*) env->GetStringUTFChars(outputFileName, 0);
+  
 
-JNIEXPORT jint JNICALL Java_HEIFConverter_convert(JNIEnv *env, jobject, jint argc, jobjectArray argv) {
-  char* argvChar[(int)argc];
+  jboolean isCopy;
+  char * dataArray = (char*)env->GetByteArrayElements(data, &isCopy);
 
-  for (int i = 0; i < (int)argc; i++) {
-    jstring jFilePath = (jstring) (env->GetObjectArrayElement(argv, i));
-    char *str = (char*) env->GetStringUTFChars(jFilePath, 0);
-    argvChar[i] = str;
-    env->DeleteLocalRef(jFilePath);
-  }
-  return convert(argc,argvChar);
+  return convert((int)dataLength,dataArray,outputFileNameStr);
 }
