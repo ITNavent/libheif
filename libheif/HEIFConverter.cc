@@ -166,27 +166,22 @@ int convert(int dataLength, void* data, char* outputFileName) {
     fprintf(stderr, "File doesn't contain any images\n");
     return 1;
   }
+  
+  if (num_images > 1) {
+    return 2;
+  }
 
   printf("File contains %d images\n", num_images);
 
   heif_item_id* image_IDs = (heif_item_id*)alloca(num_images * sizeof(heif_item_id));
   num_images = heif_context_get_list_of_top_level_image_IDs(ctx, image_IDs, num_images);
 
-
   std::string filename;
   size_t image_index = 1;  // Image filenames are "1" based.
-
+  
   for (int idx = 0; idx < num_images; ++idx) {
 
-    if (num_images>1) {
-      std::ostringstream s;
-      s << output_filename.substr(0, output_filename.find_last_of('.'));
-      s << "-" << image_index;
-      s << output_filename.substr(output_filename.find_last_of('.'));
-      filename.assign(s.str());
-    } else {
-      filename.assign(output_filename);
-    }
+    filename.assign(output_filename);
 
     struct heif_image_handle* handle;
     err = heif_context_get_image_handle(ctx, image_IDs[idx], &handle);
