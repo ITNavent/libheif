@@ -2,6 +2,10 @@ include(CMakePackageConfigHelpers)
 
 configure_file(heif_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/heif_version.h)
 
+find_package(JNI REQUIRED)
+
+set(CMAKE_CXX_FLAGS "-fPIC -I$ENV{JAVA_HOME}/include -I$ENV{JAVA_HOME}/include/linux")
+
 set(libheif_headers
     bitstream.h
     box.h
@@ -17,6 +21,11 @@ set(libheif_headers
     heif_limits.h
     heif_plugin.h
     logging.h
+    encoder_jpeg.h
+    encoder_png.h
+    encoder_y4m.h
+    encoder.h
+    HEIFConverter.h
     ${CMAKE_CURRENT_BINARY_DIR}/heif_version.h
 )
 
@@ -32,6 +41,11 @@ add_library(heif
     heif_colorconversion.cc
     heif_plugin_registry.cc
     heif_plugin.cc
+    encoder_jpeg.cc
+    encoder_png.cc
+    encoder_y4m.cc
+    encoder.cc
+    HEIFConverter.cc
     ${libheif_headers}
 )
 
@@ -89,6 +103,64 @@ if(X265_FOUND)
 
     install(FILES heif_encoder_x265.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 endif()
+
+set (additional_libraries)
+
+include (${CMAKE_ROOT}/Modules/FindJPEG.cmake)
+
+if(JPEG_FOUND)
+add_definitions(-DHAVE_LIBJPEG=1)
+
+include (${CMAKE_ROOT}/Modules/CheckCXXSourceCompiles.cmake)
+
+set(CMAKE_REQUIRED_LIBRARIES ${JPEG_LIBRARIES})
+check_cxx_source_compiles("
+#include <stddef.h>
+#include <stdio.h>
+#include <jpeglib.h>
+
+int main() {
+  jpeg_write_icc_profile(NULL, NULL, 0);
+  return 0;
+}
+" HAVE_JPEG_WRITE_ICC_PROFILE)
+if(HAVE_JPEG_WRITE_ICC_PROFILE)
+  add_definitions(-DHAVE_JPEG_WRITE_ICC_PROFILE=1)
+endif()
+
+set (heif_convert_sources
+  ${heif_convert_sources}
+  encoder_jpeg.cc
+  encoder_jpeg.h
+)
+target_link_libraries(heif PRIVATE ${JPEG_LIBRARIES})
+endif()
+
+if(UNIX)
+  include (${CMAKE_ROOT}/Modules/FindPkgConfig.cmake)
+  pkg_check_modules (LIBPNG libpng)
+  if(LIBPNG_FOUND)
+    add_definitions(-DHAVE_LIBPNG=1)
+    set (heif_convert_sources
+      ${heif_convert_sources}
+      encoder_png.cc
+      encoder_png.h
+    )
+
+    target_link_libraries(heif PRIVATE ${LIBPNG_LIBRARIES})
+  endif()
+endif()
+
+if(MSVC)
+  set (getopt_sources
+    ../extra/getopt.c
+    ../extra/getopt.h
+    ../extra/getopt_long.c
+  )
+  include_directories ("../extra")
+endif()
+
+#target_link_libraries(heif ${additional_libraries})
 
 write_basic_package_version_file(${PROJECT_NAME}-config-version.cmake COMPATIBILITY ExactVersion)
 
