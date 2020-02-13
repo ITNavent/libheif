@@ -14,7 +14,10 @@ provided as plugins. There is experimental code for an AV1 plugin (for AVIF form
 
 Libreria desarrollada en C para el manejo de imagenes heif/heic. 
 
-Como adaptación a las necesidades se creo una clase encargada a la conversion de imagenes heif/heic a la extension deseada. La clase en cuestion es HEIFConverter.cc, con su respectivo Header. Esta clase implementa el metodo con el codigo correspondiente a JNI, para poder ser consumido en un programa en JAVA. 
+Como adaptación a las necesidades se creo una clase encargada a la conversion de imagenes heif/heic a la extension deseada. La clase en cuestion es HEIFConverter.cc, con su respectivo Header. Esta clase implementa el metodo con el codigo correspondiente a JNI, para poder ser consumido en un programa en JAVA. El Header es autogenerado a partir de la clase en JAVA, compilando la misma con el siguiente comando:
+```
+javac -h . HEIFConverter.java
+```
 
 ## Instalacion
 
