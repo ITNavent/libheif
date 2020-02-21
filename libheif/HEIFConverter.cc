@@ -41,7 +41,7 @@
 
 #include <libheif/heif.h>
 
-#include "HEIFConverter.h"
+#include "com_navent_realestate_converter_HEIFConverter.h"
 #include "encoder.h"
 #if HAVE_LIBJPEG
 #include "encoder_jpeg.h"
@@ -279,7 +279,7 @@ int convert(int dataLength, void* data, char* outputFileName) {
 
 }
 
-JNIEXPORT jint JNICALL Java_HEIFConverter_convert(JNIEnv *env, jobject, jint dataLength, jbyteArray data, jstring outputFileName){
+JNIEXPORT jint JNICALL Java_com_navent_realestate_converter_HEIFConverter_convert(JNIEnv *env, jobject, jint dataLength, jbyteArray data, jstring outputFileName){
   char *outputFileNameStr = (char*) env->GetStringUTFChars(outputFileName, 0);
   
 

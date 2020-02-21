@@ -25,7 +25,7 @@ set(libheif_headers
     encoder_png.h
     encoder_y4m.h
     encoder.h
-    HEIFConverter.h
+    com_navent_realestate_converter_HEIFConverter.h
     ${CMAKE_CURRENT_BINARY_DIR}/heif_version.h
 )
 
