@@ -61,4 +61,6 @@ make
 ```
 Dentro de la carpeta libheif, estara generada la libreria deseada.
 
+Se debe copiar el que tiene la extension en numeros .1.6.2.0
+
 Al momento de realizar el CMake, se debe ver que cosas faltan instalar.
